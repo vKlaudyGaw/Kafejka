@@ -18,7 +18,12 @@ namespace Kafejka.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        public IActionResult About()
+        {
+            return View();
+        }
+
+        public IActionResult Info()
         {
             return View();
         }
