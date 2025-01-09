@@ -4,14 +4,19 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+// Pobierz connection string z appsettings.json
+var connectionString = builder.Configuration.GetConnectionString("localDb")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+// Zarejestruj DbContext i skonfiguruj SQLite
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite(connectionString));
+
+// Dodaj Identity
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+// Dodaj kontrolery i inne us³ugi
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
