@@ -13,7 +13,7 @@ namespace Kafejka.Data
         public DbSet<Visit> Visits { get; set; }
         public DbSet<VisitItem> VisitItems { get; set; }
         public DbSet<Stamp> Stamps { get; set; }
-        public DbSet<Discount> Discounts { get; set; }
+        public DbSet<Reward> Rewards { get; set; }
 
         //O tej metodzie bym musial poczytac poki co jej nie uzywam
 

@@ -19,7 +19,5 @@ namespace Kafejka.Models
 
         [ForeignKey(nameof(VisitId))]
         public Visit Visit { get; set; }
-
-        public DateTime StampDate { get; set; }
     }
 }

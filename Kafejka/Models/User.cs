@@ -15,12 +15,15 @@ namespace Kafejka.Models
 
         [Required, MaxLength(100)]
         public string Email { get; set; }
+        
+        [Range(0,5000)]
+        public float MoneySpend { get; set; }
 
         public DateTime CreatedAt { get; set; }
 
         // Relacja: Jeden użytkownik ma wiele wizyt i pieczątek
         public ICollection<Visit> Visits { get; set; }
         public ICollection<Stamp> Stamps { get; set; }
-        public ICollection<Discount> Discounts { get; set; }
+        public ICollection<Reward> Rewards { get; set; }
     }
 }

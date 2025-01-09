@@ -19,7 +19,6 @@ namespace Kafejka.Models
 
         public string Description { get; set; }
 
-        // Relacja: Pozycja menu może występować w wielu wizytach
-        public ICollection<VisitItem> VisitItems { get; set; }
+        
     }
 }
