@@ -11,5 +11,6 @@ namespace Kafejka.Data
         {
         }
         public DbSet<Kafejka.Models.ItemType> ItemType { get; set; } = default!;
+        public DbSet<Kafejka.Models.MenuItem> MenuItem { get; set; } = default!;
     }
 }

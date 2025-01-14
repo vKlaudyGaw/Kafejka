@@ -1,0 +1,33 @@
+﻿@model IEnumerable<IGrouping<string, Kafejka.Models.MenuItem>>
+
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Menu kawiarni</h1>
+
+@foreach (var group in Model)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>@group.Key.ToUpper()</th>   @* wypisywanie grupy *@
+                <th>@Html.DisplayNameFor(model => model.First().Description)</th>
+                <th>@Html.DisplayNameFor(model => model.First().Price)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in group)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Description)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Price) zł</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <br />
+    <br />
+}
