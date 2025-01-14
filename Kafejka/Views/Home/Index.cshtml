@@ -3,6 +3,45 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Kafejka</h1>
-    <p>Strona główna</p>
+    <h1 class="display-2">Kafejka</h1>
+
+    <br />
+    <br />
+
+    <p class="display-6">Pozycja dnia</p>
+    <p>
+        To codzienna oferta, która pozwala naszym klientom spróbować wyjątkowego dania lub napoju w atrakcyjnej cenie.
+        Każdego dnia oferujemy inną pozycję, starannie wybraną przez naszych kucharzy, która może obejmować popularne desery, kawałek ciasta lub napój. 
+        Cena tej pozycji jest obniżona, aby nasi goście mogli cieszyć się nowymi smakami w przystępnej ofercie.
+    </p>
+    <br />
+    @if (ViewData["DayMenuItem"] != null)
+    {
+        var menuItem = (Kafejka.Models.MenuItem)ViewData["DayMenuItem"];
+        var discountedPrice = Math.Round(menuItem.Price * 0.7);
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Dzisiejsza pozycja</th>
+                    <th></th>
+                    <th>Cena rabatowa</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span style="font-weight: bold">@menuItem.Name</span></td>
+                    <td></td>
+                    <td>
+                        <span style="text-decoration: line-through; color:red;">@menuItem.Price zł</span>
+                        <span style="color: green; font-weight: bold; margin-left: 10px;">@discountedPrice zł</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Brak pozycji dnia na dzisiaj.</p>
+    }
 </div>
