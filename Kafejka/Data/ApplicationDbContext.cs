@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Kafejka.Models;
 
 namespace Kafejka.Data
 {
@@ -9,5 +10,6 @@ namespace Kafejka.Data
             : base(options)
         {
         }
+        public DbSet<Kafejka.Models.ItemType> ItemType { get; set; } = default!;
     }
 }
