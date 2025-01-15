@@ -26,7 +26,7 @@ namespace Kafejka.Controllers
         {
             { 1, 1 }, // Poniedzia³ek
             { 2, 3 }, // Wtorek
-            { 3, 5 }, // Œroda
+            { 3, 2 }, // Œroda
             { 4, 7 }, // Czwartek
             { 5, 9 }, // Pi¹tek
             { 6, 2 }, // Sobota
