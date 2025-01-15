@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Kafejka.Models
 {
@@ -12,11 +13,11 @@ namespace Kafejka.Models
         [Display(Name = "OPIS")]
         public string Description { get; set; }
 
-        //ceny w kawiarni są pełnymi złotówkami np.12zł, 4 zł dlatego int
-
         [Display(Name = "CENA")]
-        public int Price { get; set; }
+        public int Price { get; set; }  //ceny pełnymi złotówkami np.12zł dlatego int
 
+
+        [ForeignKey("ItemType")]
         public  int ItemTypeId { get; set; }
         public virtual ItemType? Type { get; set; }
     }
