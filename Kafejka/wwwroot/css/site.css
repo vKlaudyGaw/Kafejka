@@ -20,3 +20,17 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Menu rozwijane pojawia siê po najechaniu */
+.nav-item.dropdown:hover .dropdown-menu {
+    display: block;
+    visibility: visible;
+}
+
+
+li.nav-item.dropdown::marker {
+    content: '';
+}
+dropdownMenuButton {
+    content: '';
+}
