@@ -7,7 +7,9 @@
 
 <h1>Menu kawiarni</h1>
 
-
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
 
 @foreach (var group in Model)
 {
@@ -26,6 +28,11 @@
                     <td>@Html.DisplayFor(modelItem => item.Name)</td>
                     <td>@Html.DisplayFor(modelItem => item.Description)</td>
                     <td>@Html.DisplayFor(modelItem => item.Price) zł</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                        <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                        <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    </td>
                 </tr>
             }
         </tbody>

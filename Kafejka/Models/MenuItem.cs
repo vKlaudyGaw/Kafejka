@@ -9,7 +9,7 @@ namespace Kafejka.Models
 
 
         [Required(ErrorMessage = "Podaj nazwe produktu")]
-        [Display(Name = " ")]
+        [Display(Name = " Nazwa")]
         [StringLength(150, MinimumLength = 1, ErrorMessage = "Nazwa produktu musi mieć od 1 do 150 znaków")]
         public string Name { get; set; }
 
