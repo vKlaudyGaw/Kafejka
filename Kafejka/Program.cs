@@ -11,10 +11,34 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+
+    // Tworzenie roli Administrator
+    var adminRole = "Administrator";
+    if (!await roleManager.RoleExistsAsync(adminRole))
+    {
+        await roleManager.CreateAsync(new IdentityRole(adminRole));
+    }
+
+    // Tworzenie u¿ytkownika administratora
+    //var adminEmail = "admin@example.com";
+    //var adminPassword = "Admin123!";
+    //if (await userManager.FindByEmailAsync(adminEmail) == null)
+    //{
+    //    var adminUser = new IdentityUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
+    //    await userManager.CreateAsync(adminUser, adminPassword);
+    //    await userManager.AddToRoleAsync(adminUser, adminRole);
+    //}
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
