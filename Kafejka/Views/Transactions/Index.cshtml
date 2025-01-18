@@ -1,18 +1,21 @@
 ﻿@model IEnumerable<Kafejka.Models.Transaction>
 
 @{
-    ViewData["Title"] = "Lista Transakcji";
+    ViewData["Title"] = "Wizyty";
 }
 
-<h2>Lista Transakcji</h2>
-
+<h1>Twoje wizyty</h1>
+<br />
+<a asp-action="Create" class="btn btn-primary">Dodaj kod</a>
+<br />
+<br />
 <table class="table">
     <thead>
         <tr>
             <th>Kod</th>
             <th>Kwota</th>
             <th>Data Zakupu</th>
-            <th>Pozycje</th>
+            <th>Pozycje z menu</th>
             <th>Akcje</th>
         </tr>
     </thead>
@@ -26,15 +29,17 @@
                 <td>
                     @foreach (var transactionItem in item.TransactionItemsList)
                     {
-                        <p>@transactionItem.MenuItem.Name</p>
+                        for(int i=1; i<= transactionItem.Quantity; i++){
+                            <p>@transactionItem.MenuItem.Name</p>
+                        }
                     }
                 </td>
                 <td>
+                    <a asp-action="Details" asp-route-id="@item.Id">Szczegóły</a> |
                     <a asp-action="Edit" asp-route-id="@item.Id">Edytuj</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Usuń</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id">Usuń</a> 
                 </td>
             </tr>
         }
     </tbody>
 </table>
-<a asp-action="Create" class="btn btn-primary">Dodaj Transakcję</a>

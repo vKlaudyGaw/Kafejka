@@ -15,6 +15,9 @@ namespace Kafejka.Models
         [ForeignKey("MenuItem")]
         [Display(Name = "Pozycja w menu")]
         public int MenuItemId { get; set; }
-        public virtual MenuItem? MenuItem {  get; set; }
+        public virtual MenuItem? MenuItem { get; set; }
+
+        [Display(Name = "Ilość")]
+        public int Quantity { get; set; }
     }
 }

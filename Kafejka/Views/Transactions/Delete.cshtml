@@ -1,39 +1,73 @@
 ﻿@model Kafejka.Models.Transaction
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Usuń wizytę";
 }
 
-<h1>Delete</h1>
-
-<h3>Are you sure you want to delete this?</h3>
+<h1>Usuń wizytę</h1>
+<br />
+<h3>Czy na pewno chcesz usunąć zapisaną wizytę?</h3>
+<p style="color:red;font-weight:bold">UWAGA! Ta operacja jest nieodwracalna.</p>
+<br />
 <div>
-    <h4>Transaction</h4>
-    <hr />
+<div>
+    <h4>Informacje o wizycie</h4>
+    <br />
     <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Amount)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Amount)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Code)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Code)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PurchaseTime)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PurchaseTime)
-        </dd>
+        <dt class="col-sm-2">Kod z paragonu</dt>
+        <dd class="col-sm-10">@Model.Code</dd>
+
+        <dt class="col-sm-2">Kwota</dt>
+        <dd class="col-sm-10">@Model.Amount zł</dd>
+
+        <dt class="col-sm-2">Data zakupu</dt>
+        <dd class="col-sm-10">@Model.PurchaseTime.ToString("dd-MM-yyyy HH:mm")</dd>
     </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
 </div>
+
+<div>
+    <h5>Lista zakupionych pozycji</h5>
+    <br />
+    @if (Model.TransactionItemsList != null && Model.TransactionItemsList.Any())
+    {
+        var groupedItems = Model.TransactionItemsList
+        .GroupBy(item => item.MenuItem.Type.Name);
+
+        foreach (var group in groupedItems)
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>@group.Key.ToUpper()</th>
+                        <th>Ilość</th>
+                        <th>Regularna cena</th>
+                        <th>Opis</th>
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in group)
+                    {
+                        <tr>
+                            <td>@item.MenuItem.Name</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.MenuItem.Price zł</td>
+                            <td>@item.MenuItem.Description</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <br />
+        }
+    }
+    else
+    {
+        <p>Brak pozycji z menu w tej wizycie.</p>
+    }
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Usuń</button>
+    <a asp-action="Index" class="btn btn-secondary">Anuluj</a>
+</form>
