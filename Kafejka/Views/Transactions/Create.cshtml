@@ -1,11 +1,11 @@
 ﻿@model Kafejka.Models.Transaction
 
 @{
-    ViewData["Title"] = "Create Transaction";
+    ViewData["Title"] = "Dodaj wizytę";
     var menuItems = ViewData["MenuItems"] as List<Kafejka.Models.MenuItem>;
 }
 
-<h1>Create Transaction</h1>
+<h1>Zapisz swoją wizytę</h1>
 
 <form asp-action="Create" method="post">
     <div class="form-group">
@@ -24,28 +24,27 @@
         <span asp-validation-for="PurchaseTime" class="text-danger"></span>
     </div>
     <div class="form-group">
-        <label>Select Menu Items</label>
+        <label>Lista zakupionych pozycji</label>
         <div>
-            @foreach (var item in menuItems)
+            <span asp-validation-for="TransactionItemsList" class="text-danger"></span>
+            @for (int i = 0; i < menuItems.Count; i++)
             {
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="selectedMenuItems" value="@item.Id" id="menuItem_@item.Id" />
-                    <label class="form-check-label" for="menuItem_@item.Id">
-                        @item.Name
-                    </label>
+                <div class="form-group row">
+                    <div class="col-sm-2">
+                        <input type="number" class="form-control" name="quantities" min="0" value="0"/>
+                    </div>
+                    <div class="col-sm-10">
+                        <label>@menuItems[i].Name</label>
+                    </div>
                 </div>
             }
         </div>
     </div>
-    <button type="submit" class="btn btn-primary">Create</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    <br />
+    <button type="submit" class="btn btn-primary">Zapisz</button>
+    <a asp-action="Index" class="btn btn-secondary">Anuluj</a>
 </form>
 
-
-
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,12 +8,15 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Kafejka.Data;
 using Kafejka.Models;
+using Kafejka.Data.Migrations;
+using Microsoft.Data.SqlClient;
 
 namespace Kafejka.Controllers
 {
     public class TransactionsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private DateTime dateTimeNow = DateTime.Now;
 
         public TransactionsController(ApplicationDbContext context)
         {
@@ -22,10 +26,11 @@ namespace Kafejka.Controllers
         // GET: Transactions
         public async Task<IActionResult> Index()
         {
-            var transactions = _context.Transaction
+            var transactions = await _context.Transaction
                 .Include(t => t.TransactionItemsList)
-                .ThenInclude(ti => ti.MenuItem);
-            return View(await transactions.ToListAsync());
+                .ThenInclude(ti => ti.MenuItem)
+                .ToListAsync();
+            return View(transactions);
         }
 
         // GET: Transactions/Details/5
@@ -37,7 +42,11 @@ namespace Kafejka.Controllers
             }
 
             var transaction = await _context.Transaction
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .Include(t => t.TransactionItemsList)
+                    .ThenInclude(ti => ti.MenuItem)
+                        .ThenInclude(mi => mi.Type)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
             if (transaction == null)
             {
                 return NotFound();
@@ -49,9 +58,9 @@ namespace Kafejka.Controllers
 
 
         // GET: Transactions/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["MenuItems"] = _context.MenuItem.ToList();
+            ViewData["MenuItems"] = await _context.MenuItem.ToListAsync();
             return View();
         }
 
@@ -61,99 +70,209 @@ namespace Kafejka.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Transaction transaction, int[] selectedMenuItems)
+        public async Task<IActionResult> Create(Transaction transaction, int[] quantities)
         {
-            //if (ModelState.IsValid)
+            
+            // Sprawdzenie unikalności kodu
+            var existingTransaction = await _context.Transaction
+                .FirstOrDefaultAsync(t => t.Code == transaction.Code);
+            if (existingTransaction != null)
             {
-                try
-                {
-                    
-                    _context.Add(transaction);
-                    await _context.SaveChangesAsync();
+                ModelState.AddModelError("Code", "Kod transakcji musi być unikalny. Taki kod już istnieje. Podaj inny kod z paragonu.");
+                ViewData["MenuItems"] = _context.MenuItem.ToList();
+                return View(transaction);
+            }
 
-                    
-                    var transactionItems = selectedMenuItems.Select(menuItemId => new TransactionItemsList
+
+            //Sprawdzanie daty (czy jest pomiędzy datą otwarcia a dzisiejszym dniem)
+            if (transaction.PurchaseTime== null ||transaction.PurchaseTime < new DateTime(2015, 1, 1) || transaction.PurchaseTime > dateTimeNow)
+            {
+                ModelState.AddModelError("PurchaseTime", $"Data zakupu musi być między datą otwarcia kawiarni a dzisiejszym dniem.");
+                ViewData["MenuItems"] = _context.MenuItem.ToList();
+                return View(transaction);
+            }
+
+
+            //Sprawdzanie wpisania przynajmniej jednej ilości przedmiotów
+            if (quantities == null || quantities.All(q => q <= 0))
+            {
+                ModelState.AddModelError("TransactionItemsList", "Musisz wybrać przynajmniej 1 pozycje z menu.");
+                ViewData["MenuItems"] = _context.MenuItem.ToList();
+                return View(transaction);
+            }
+
+
+            //Sprawdzanie kwoty czy jest większa od zera i czy nie przekracza 999999
+            if (transaction.Amount <0 || transaction.Amount>999999 || transaction.Amount == null || !(transaction.Amount is int))
+            {
+                ModelState.AddModelError("Amount", "Podaj nieujemną oraz mniejszą niż 1000000 zł kwotę z paragonu. Przy wpisywaniu nie używaj przecinków i kropek.");
+                ViewData["MenuItems"] = _context.MenuItem.ToList();
+                return View(transaction);
+            }
+
+            try
+            {
+                
+                // Dodanie transakcji
+                _context.Add(transaction);
+                await _context.SaveChangesAsync();
+
+                // Tworzenie listy TransactionItemsList
+                var menuItems = _context.MenuItem.ToList();
+                var transactionItemsList = new List<TransactionItemsList>();
+                
+                for (int i = 0; i < menuItems.Count; i++)
+                {
+                    if (quantities[i] > 0)
                     {
-                        TransactionId = transaction.Id,
-                        MenuItemId = menuItemId
-                    }).ToList();
-
-                    _context.TransactionItemsList.AddRange(transactionItems);
-
-                    //// Aktualizuj program lojalnościowy
-                    //var loyalty = _context.Loyalty.Include(l => l.Transactions).FirstOrDefault();
-                    //if (loyalty != null)
-                    //{
-                    //    loyalty.TotalPoints += transaction.Amount;
-                    //    loyalty.Transactions.Add(transaction);
-                    //    _context.Update(loyalty);
-                    //}
-
-                    await _context.SaveChangesAsync();
-                    
-                    return RedirectToAction(nameof(Index));
+                        transactionItemsList.Add(new TransactionItemsList
+                        {
+                            TransactionId = transaction.Id,
+                            MenuItemId = menuItems[i].Id,
+                            Quantity = quantities[i]
+                        });
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error saving transaction: {ex.Message}");
-                    ModelState.AddModelError("", "Wystąpił błąd przy dodawaniu kodu. Spróbuj ponownie.");
-                }
+
+                // Zapisanie pozycji menu
+                _context.TransactionItemsList.AddRange(transactionItemsList);
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving transaction: {ex.Message}");
+                ModelState.AddModelError("", "Wystąpił błąd przy dodawaniu transakcji. Spróbuj ponownie.");
             }
 
             ViewData["MenuItems"] = _context.MenuItem.ToList();
             return View(transaction);
         }
 
+
         // GET: Transactions/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var transaction = await _context.Transaction.FindAsync(id);
-            if (transaction == null)
+            var transaction = await _context.Transaction
+                .Include(t => t.TransactionItemsList)
+                .ThenInclude(ti => ti.MenuItem)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (transaction == null) return NotFound();
+
+            // Pobranie wszystkich pozycji menu
+            var menuItems = await _context.MenuItem.ToListAsync();
+            ViewData["MenuItems"] = menuItems;
+
+            // Przygotowanie ilości (łącznie z istniejącymi danymi transakcji)
+            var quantities = menuItems.Select(mi =>
             {
-                return NotFound();
-            }
+                var existingItem = transaction.TransactionItemsList.FirstOrDefault(ti => ti.MenuItemId == mi.Id);
+                return existingItem != null ? existingItem.Quantity : 0;
+            }).ToArray();
+
+            ViewData["Quantities"] = quantities;
+
             return View(transaction);
         }
 
         // POST: Transactions/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Transactions/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Amount,Code,PurchaseTime")] Transaction transaction)
+        public async Task<IActionResult> Edit(int id, Transaction transaction, int[] quantities)
         {
-            if (id != transaction.Id)
+            if (id != transaction.Id) return NotFound();
+
+            var existingTransaction = await _context.Transaction
+                .Include(t => t.TransactionItemsList)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (existingTransaction == null) return NotFound();
+
+            // Sprawdzenie unikalności kodu
+            var existingCodeTransaction = await _context.Transaction
+                .FirstOrDefaultAsync(t => t.Code == transaction.Code && t.Id != transaction.Id);
+            if (existingCodeTransaction != null)
             {
-                return NotFound();
+                ModelState.AddModelError("Code", "Kod transakcji musi być unikalny. Taki kod już istnieje.");
+                ViewData["MenuItems"] = await _context.MenuItem.ToListAsync();
+                ViewData["Quantities"] = quantities;
+                return View(transaction);
             }
 
-            if (ModelState.IsValid)
+            //Sprawdzanie daty (czy jest pomiędzy datą otwarcia a dzisiejszym dniem)
+            if (transaction.PurchaseTime == null || transaction.PurchaseTime < new DateTime(2015, 1, 1) || transaction.PurchaseTime > dateTimeNow)
             {
-                try
+                ModelState.AddModelError("PurchaseTime", "Data zakupu musi być między datą otwarcia kawiarni a dzisiejszym dniem.");
+                ViewData["MenuItems"] = await _context.MenuItem.ToListAsync();
+                ViewData["Quantities"] = quantities;
+                return View(transaction);
+            }
+
+            //Sprawdzanie wpisania przynajmniej jednej ilości przedmiotów
+            if (quantities == null || quantities.All(q => q <= 0))
+            {
+                ModelState.AddModelError("TransactionItemsList", "Musisz wybrać przynajmniej 1 pozycję z menu.");
+                ViewData["MenuItems"] = await _context.MenuItem.ToListAsync();
+                ViewData["Quantities"] = quantities;
+                return View(transaction);
+            }
+            //Sprawdzanie kwoty czy jest większa od zera i czy nie przekracza 999999
+            if (transaction.Amount < 0 || transaction.Amount > 999999 || transaction.Amount == null || !(transaction.Amount is int))
+            {
+                ModelState.AddModelError("Amount", "Podaj nieujemną oraz mniejszą niż 1000000 zł kwotę z paragonu. Przy wpisywaniu nie używaj przecinków i kropek.");
+                ViewData["MenuItems"] = await _context.MenuItem.ToListAsync();
+                ViewData["Quantities"] = quantities;
+                return View(transaction);
+
+            }
+
+            try
+            {
+                // Aktualizacja transakcji
+                existingTransaction.Code = transaction.Code;
+                existingTransaction.Amount = transaction.Amount;
+                existingTransaction.PurchaseTime = transaction.PurchaseTime;
+
+                // Aktualizacja pozycji w transakcji
+                var menuItems = await _context.MenuItem.ToListAsync();
+                _context.TransactionItemsList.RemoveRange(existingTransaction.TransactionItemsList);
+
+                var transactionItemsList = new List<TransactionItemsList>();
+                for (int i = 0; i < menuItems.Count; i++)
                 {
-                    _context.Update(transaction);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TransactionExists(transaction.Id))
+                    if (quantities[i] > 0)
                     {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
+                        transactionItemsList.Add(new TransactionItemsList
+                        {
+                            TransactionId = transaction.Id,
+                            MenuItemId = menuItems[i].Id,
+                            Quantity = quantities[i]
+                        });
                     }
                 }
+
+                _context.TransactionItemsList.AddRange(transactionItemsList);
+                await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
+            catch
+            {
+                ModelState.AddModelError("", "Wystąpił błąd podczas edycji. Spróbuj ponownie.");
+            }
+
+            ViewData["MenuItems"] = await _context.MenuItem.ToListAsync();
+            ViewData["Quantities"] = quantities;
             return View(transaction);
         }
+
 
         // GET: Transactions/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -163,13 +282,19 @@ namespace Kafejka.Controllers
                 return NotFound();
             }
 
+            // Pobierz transakcję na podstawie ID
             var transaction = await _context.Transaction
+                .Include(t => t.TransactionItemsList)
+                    .ThenInclude(ti => ti.MenuItem)
+                    .ThenInclude(mi => mi.Type) // załadowanie typu produktu
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (transaction == null)
             {
                 return NotFound();
             }
 
+            // Przekazujemy transakcję do widoku
             return View(transaction);
         }
 
@@ -178,13 +303,22 @@ namespace Kafejka.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var transaction = await _context.Transaction.FindAsync(id);
-            if (transaction != null)
+            var transaction = await _context.Transaction
+                .Include(t => t.TransactionItemsList)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (transaction == null)
             {
-                _context.Transaction.Remove(transaction);
+                return NotFound();
             }
 
+            // Usuń powiązane pozycje z TransactionItemsList
+            _context.TransactionItemsList.RemoveRange(transaction.TransactionItemsList);
+
+            // Usuń transakcję
+            _context.Transaction.Remove(transaction);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 

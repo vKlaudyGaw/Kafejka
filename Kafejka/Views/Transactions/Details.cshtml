@@ -1,36 +1,64 @@
 ﻿@model Kafejka.Models.Transaction
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegóły wizyty";
 }
 
-<h1>Details</h1>
-
+<h1>Szczegóły transakcji</h1>
+<br />
+<br />
 <div>
-    <h4>Transaction</h4>
-    <hr />
+    <h4>Informacje o transakcji</h4>
+    <br />
     <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Amount)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Amount)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Code)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Code)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PurchaseTime)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PurchaseTime)
-        </dd>
+        <dt class="col-sm-2">Kod transakcji</dt>
+        <dd class="col-sm-10">@Model.Code</dd>
+
+        <dt class="col-sm-2">Kwota</dt>
+        <dd class="col-sm-10">@Model.Amount zł</dd>
+
+        <dt class="col-sm-2">Data zakupu</dt>
+        <dd class="col-sm-10">@Model.PurchaseTime.ToString("dd-MM-yyyy HH:mm")</dd>
     </dl>
 </div>
+
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <h4>Lista zakupionych pozycji</h4>
+    @if (Model.TransactionItemsList != null && Model.TransactionItemsList.Any())
+    {
+        var groupedItems = Model.TransactionItemsList
+        .GroupBy(item => item.MenuItem.Type.Name);
+
+        foreach (var group in groupedItems)
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>@group.Key.ToUpper()</th>
+                        <th>Regularna cena </th>
+                        <th>Opis</th>
+                        <th>Ilość</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in group)
+                    {
+                        <tr>
+                            <td>@item.MenuItem.Name</td>
+                            <td>@item.MenuItem.Price zł</td>
+                            <td>@item.MenuItem.Description</td>
+                            <td>@item.Quantity</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <br />
+        }
+    }
+    else
+    {
+        <p>Brak pozycji z menu w tej wizycie.</p>
+    }
 </div>
+
+<a asp-action="Index" class="btn btn-secondary">Powrót</a>

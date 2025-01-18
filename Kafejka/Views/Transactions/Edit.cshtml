@@ -1,44 +1,52 @@
 ﻿@model Kafejka.Models.Transaction
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edytuj Transakcję";
+    var menuItems = ViewData["MenuItems"] as List<Kafejka.Models.MenuItem>;
+    var quantities = ViewData["Quantities"] as int[];
 }
 
-<h1>Edit</h1>
+<h1>Edytuj Transakcję</h1>
 
-<h4>Transaction</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Amount" class="control-label"></label>
-                <input asp-for="Amount" class="form-control" />
-                <span asp-validation-for="Amount" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Code" class="control-label"></label>
-                <input asp-for="Code" class="form-control" />
-                <span asp-validation-for="Code" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PurchaseTime" class="control-label"></label>
-                <input asp-for="PurchaseTime" class="form-control" />
-                <span asp-validation-for="PurchaseTime" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div class="form-group">
+        <label asp-for="Code" class="control-label"></label>
+        <input asp-for="Code" class="form-control" />
+        <span asp-validation-for="Code" class="text-danger"></span>
     </div>
-</div>
+    <div class="form-group">
+        <label asp-for="Amount" class="control-label"></label>
+        <input asp-for="Amount" type="number" class="form-control" />
+        <span asp-validation-for="Amount" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="PurchaseTime" class="control-label"></label>
+        <input asp-for="PurchaseTime" type="datetime-local" class="form-control" />
+        <span asp-validation-for="PurchaseTime" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label>Lista zakupionych pozycji</label>
+        <div>
+            <span asp-validation-for="TransactionItemsList" class="text-danger"></span>
+            @for (int i = 0; i < menuItems.Count; i++)
+            {
+                <div class="form-group row">
+                    <div class="col-sm-2">
+                        <input type="number" class="form-control" name="quantities" min="0" value="@quantities[i]" />
+                    </div>
+                    <div class="col-sm-10">
+                        <label>@menuItems[i].Name</label>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+    <a asp-action="Index" class="btn btn-secondary">Anuluj</a>
+</form>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
 }
