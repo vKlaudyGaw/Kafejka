@@ -33,6 +33,8 @@ namespace Kafejka.Models
         public DateTime PurchaseTime { get; set; }
 
 
+        public bool Approved { get; set; }
+
         //Required(ErrorMessage = "Zaznacz zamówione pozycje.")]
         [Display(Name = "Lista zakupionych pozycji")]
         public ICollection<TransactionItemsList> TransactionItemsList { get; set; }

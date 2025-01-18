@@ -11,7 +11,7 @@
     <h4>Informacje o transakcji</h4>
     <br />
     <dl class="row">
-        <dt class="col-sm-2">Kod transakcji</dt>
+        <dt class="col-sm-2">Kod z paragonu</dt>
         <dd class="col-sm-10">@Model.Code</dd>
 
         <dt class="col-sm-2">Kwota</dt>
@@ -35,9 +35,10 @@
                 <thead>
                     <tr>
                         <th>@group.Key.ToUpper()</th>
+                        <th>Ilość</th>
                         <th>Regularna cena </th>
                         <th>Opis</th>
-                        <th>Ilość</th>
+                        
                     </tr>
                 </thead>
                 <tbody>
@@ -45,9 +46,10 @@
                     {
                         <tr>
                             <td>@item.MenuItem.Name</td>
+                            <td>@item.Quantity</td>
                             <td>@item.MenuItem.Price zł</td>
                             <td>@item.MenuItem.Description</td>
-                            <td>@item.Quantity</td>
+                            
                         </tr>
                     }
                 </tbody>

@@ -72,7 +72,7 @@ namespace Kafejka.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Transaction transaction, int[] quantities)
         {
-
+            
             // Sprawdzenie unikalności kodu
             var existingTransaction = await _context.Transaction
                 .FirstOrDefaultAsync(t => t.Code == transaction.Code);
@@ -112,6 +112,8 @@ namespace Kafejka.Controllers
 
             try
             {
+                //Dodawanie false do approved przy tworzeniu przez użytkownika
+                transaction.Approved = false;
 
                 // Dodanie transakcji
                 _context.Add(transaction);
@@ -155,7 +157,7 @@ namespace Kafejka.Controllers
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-
+            
             var transaction = await _context.Transaction
                 .Include(t => t.TransactionItemsList)
                 .ThenInclude(ti => ti.MenuItem)

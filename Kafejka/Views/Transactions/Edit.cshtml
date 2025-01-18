@@ -1,12 +1,12 @@
 ﻿@model Kafejka.Models.Transaction
 
 @{
-    ViewData["Title"] = "Edytuj Transakcję";
+    ViewData["Title"] = "Edytuj wizytę";
     var menuItems = ViewData["MenuItems"] as List<Kafejka.Models.MenuItem>;
     var quantities = ViewData["Quantities"] as int[];
 }
 
-<h1>Edytuj Transakcję</h1>
+<h1>Edytuj wizytę</h1>
 
 <form asp-action="Edit" method="post">
     <input type="hidden" asp-for="Id" />
