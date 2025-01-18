@@ -11,6 +11,7 @@ using Kafejka.Models;
 
 namespace Kafejka.Controllers
 {
+    
     public class MenuItemsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -29,7 +30,9 @@ namespace Kafejka.Controllers
             return View(groupedMenuItems);
         }
 
+        
         // GET: MenuItems/Details/5
+        [Authorize(Roles ="Administrator")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -48,7 +51,9 @@ namespace Kafejka.Controllers
             return View(menuItem);
         }
 
+        
         // GET: MenuItems/Create
+        [Authorize(Roles = "Administrator")]
         public IActionResult Create()
         {
             ViewData["ItemTypeId"] = new SelectList(_context.ItemType, "Id", "Id");
@@ -60,6 +65,7 @@ namespace Kafejka.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Create([Bind("Id,Name,Description,Price,ItemTypeId")] MenuItem menuItem)
         {
             if (ModelState.IsValid)
@@ -73,6 +79,7 @@ namespace Kafejka.Controllers
         }
 
         // GET: MenuItems/Edit/5
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -92,6 +99,7 @@ namespace Kafejka.Controllers
         // POST: MenuItems/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "Administrator")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Price,ItemTypeId")] MenuItem menuItem)
@@ -126,6 +134,7 @@ namespace Kafejka.Controllers
         }
 
         // GET: MenuItems/Delete/5
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -145,6 +154,7 @@ namespace Kafejka.Controllers
         }
 
         // POST: MenuItems/Delete/5
+        [Authorize(Roles = "Administrator")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

@@ -12,10 +12,15 @@
 <table class="table">
     <thead>
         <tr>
+            @if (User.IsInRole("Administrator")) 
+            {
+                <th>Użytkownik</th>
+            }
             <th>Kod</th>
             <th>Kwota</th>
             <th>Data Zakupu</th>
             <th>Pozycje z menu</th>
+            <th>Stan</th>
             <th>Akcje</th>
         </tr>
     </thead>
@@ -23,6 +28,10 @@
         @foreach (var item in Model)
         {
             <tr>
+                @if (User.IsInRole("Administrator"))
+                {
+                    <td>@item.User.UserName</td>
+                }
                 <td>@item.Code</td>
                 <td>@item.Amount</td>
                 <td>@item.PurchaseTime</td>
@@ -34,9 +43,24 @@
                         }
                     }
                 </td>
+                @if(item.Approved)
+                {
+                    <td>Zaakceptowane</td>
+                }
+                else
+                {
+                    <td>Oczekujące
+                        @if (User.IsInRole("Administrator"))
+                        {
+                        <form asp-action="Approve" asp-route-id="@item.Id" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-success">Akceptuj</button>
+                        </form>
+                        }
+                    </td>
+                }
                 <td>
                     <a asp-action="Details" asp-route-id="@item.Id">Szczegóły</a> |
-                    @if (!item.Approved) @* lub rola admin *@
+                    @if (!item.Approved || User.IsInRole("Administrator")) 
                     {
                         <a asp-action="Edit" asp-route-id="@item.Id">Edytuj</a>
                         <text>|</text>
@@ -47,3 +71,4 @@
         }
     </tbody>
 </table>
+<p style="color:red">Uwaga! Nie można edytowac zaakceptowanych wizyt!</p>

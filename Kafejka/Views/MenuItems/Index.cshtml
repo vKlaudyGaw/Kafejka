@@ -7,10 +7,12 @@
 
 <h1>Menu kawiarni</h1>
 
-<p>
-    <a asp-action="Create">Dodaj pozycje</a>
-</p>
-
+<br />
+@if (User.IsInRole("Administrator"))
+{
+    <a asp-action="Create" class="btn btn-primary">Dodaj pozycje</a>
+}
+<br />
 @foreach (var group in Model)
 {
     <table class="table">

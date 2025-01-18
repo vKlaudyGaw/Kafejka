@@ -11,13 +11,17 @@ using Kafejka.Models;
 using Kafejka.Data.Migrations;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace Kafejka.Controllers
 {
-    [Authorize]
+    //[Authorize]
     public class TransactionsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        
         private DateTime dateTimeNow = DateTime.Now;
 
         public TransactionsController(ApplicationDbContext context)
@@ -25,13 +29,42 @@ namespace Kafejka.Controllers
             _context = context;
         }
 
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            // Jeśli użytkownik nie jest zalogowany, przekieruj go na stronę LoyaltyInfo
+            if (!User.Identity.IsAuthenticated)
+            {
+                context.Result = RedirectToAction("LoyaltyInfo", "Home");
+            }
+
+            base.OnActionExecuting(context);
+        }
+
         // GET: Transactions
         public async Task<IActionResult> Index()
         {
-            var transactions = await _context.Transaction
-                .Include(t => t.TransactionItemsList)
-                .ThenInclude(ti => ti.MenuItem)
-                .ToListAsync();
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var transactions = new List<Transaction>();
+
+            if (User.IsInRole("Administrator"))
+            {
+                transactions = await _context.Transaction
+                    .Include(t => t.User)
+                    .Include(t => t.TransactionItemsList)
+                    .ThenInclude(ti => ti.MenuItem)
+                    .ToListAsync();
+            }
+            else
+            {
+                transactions = await _context.Transaction
+                    .Include(t => t.User)
+                    .Include(t => t.TransactionItemsList)
+                    .ThenInclude(ti => ti.MenuItem)
+                    .Where(t => t.UserId == userId)
+                    .ToListAsync();
+            }
+           
             return View(transactions);
         }
 
@@ -43,13 +76,30 @@ namespace Kafejka.Controllers
                 return NotFound();
             }
 
-            var transaction = await _context.Transaction
-                .Include(t => t.TransactionItemsList)
-                    .ThenInclude(ti => ti.MenuItem)
-                        .ThenInclude(mi => mi.Type)
-                .FirstOrDefaultAsync(t => t.Id == id);
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var transaction = new Transaction();
 
-            if (transaction == null)
+            if (User.IsInRole("Administrator"))
+            {
+                transaction = await _context.Transaction
+                .Include(t => t.User)
+                .Include(t => t.TransactionItemsList)
+                .ThenInclude(ti => ti.MenuItem)
+                .ThenInclude(mi => mi.Type)
+                .FirstOrDefaultAsync(t => t.Id == id);
+            }
+            else
+            {
+                transaction = await _context.Transaction
+                .Include(t => t.User)
+                .Include(t => t.TransactionItemsList)
+                .ThenInclude(ti => ti.MenuItem)
+                .ThenInclude(mi => mi.Type)
+                .Where(t => t.UserId == userId)
+                .FirstOrDefaultAsync(t => t.Id == id);
+            }
+
+            if (transaction == null || (transaction.UserId != userId && !User.IsInRole("Administrator")))
             {
                 return NotFound();
             }
@@ -74,10 +124,10 @@ namespace Kafejka.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Transaction transaction, int[] quantities)
         {
-            
             // Sprawdzenie unikalności kodu
             var existingTransaction = await _context.Transaction
                 .FirstOrDefaultAsync(t => t.Code == transaction.Code);
+
             if (existingTransaction != null)
             {
                 ModelState.AddModelError("Code", "Kod transakcji musi być unikalny. Taki kod już istnieje. Podaj inny kod z paragonu.");
@@ -116,6 +166,8 @@ namespace Kafejka.Controllers
             {
                 //Dodawanie false do approved przy tworzeniu przez użytkownika
                 transaction.Approved = false;
+                //Dodanie userId do transakcji
+                transaction.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 // Dodanie transakcji
                 _context.Add(transaction);
@@ -124,7 +176,6 @@ namespace Kafejka.Controllers
                 // Tworzenie listy TransactionItemsList
                 var menuItems = _context.MenuItem.ToList();
                 var transactionItemsList = new List<TransactionItemsList>();
-
                 for (int i = 0; i < menuItems.Count; i++)
                 {
                     if (quantities[i] > 0)
@@ -133,11 +184,12 @@ namespace Kafejka.Controllers
                         {
                             TransactionId = transaction.Id,
                             MenuItemId = menuItems[i].Id,
-                            Quantity = quantities[i]
+                            Quantity = quantities[i],
+
                         });
                     }
                 }
-
+                
                 // Zapisanie pozycji menu
                 _context.TransactionItemsList.AddRange(transactionItemsList);
                 await _context.SaveChangesAsync();
@@ -159,13 +211,34 @@ namespace Kafejka.Controllers
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-            
-            var transaction = await _context.Transaction
-                .Include(t => t.TransactionItemsList)
-                .ThenInclude(ti => ti.MenuItem)
-                .FirstOrDefaultAsync(t => t.Id == id);
 
-            if (transaction == null) return NotFound();
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var transaction = new Transaction();
+
+            if (User.IsInRole("Administrator"))
+            {
+                transaction = await _context.Transaction
+                    .Include(t => t.User)
+                    .Include(t => t.TransactionItemsList)
+                    .ThenInclude(ti => ti.MenuItem)
+                    .FirstOrDefaultAsync(t => t.Id == id);
+            }
+            else
+            {
+                transaction = await _context.Transaction
+                    .Include (t => t.User)
+                    .Include(t => t.TransactionItemsList)
+                    .ThenInclude(ti => ti.MenuItem)
+                    .Where(t => t.Id == id)
+                    .FirstOrDefaultAsync(t => t.Id == id);
+            }
+
+                //transaction = await _context.Transaction
+                //.Include(t => t.TransactionItemsList)
+                //.ThenInclude(ti => ti.MenuItem)
+                //.FirstOrDefaultAsync(t => t.Id == id);
+
+            if (transaction == null || (transaction.UserId != userId && !User.IsInRole("Administrator"))) return NotFound();
 
             // Pobranie wszystkich pozycji menu
             var menuItems = await _context.MenuItem.ToListAsync();
@@ -186,7 +259,6 @@ namespace Kafejka.Controllers
         // POST: Transactions/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        // POST: Transactions/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Transaction transaction, int[] quantities)
@@ -281,24 +353,50 @@ namespace Kafejka.Controllers
         // GET: Transactions/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (id == null)
             {
                 return NotFound();
             }
 
-            // Pobierz transakcję na podstawie ID
-            var transaction = await _context.Transaction
-                .Include(t => t.TransactionItemsList)
-                    .ThenInclude(ti => ti.MenuItem)
-                    .ThenInclude(mi => mi.Type) // załadowanie typu produktu
-                .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (transaction == null)
+
+            var transaction = new Transaction();
+
+            if (User.IsInRole("Administrator"))
+            {
+                transaction = await _context.Transaction
+                .Include(t => t.User)
+                .Include(t => t.TransactionItemsList)
+                .ThenInclude(ti => ti.MenuItem)
+                .ThenInclude(mi => mi.Type)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            }
+            else
+            {
+                transaction = await _context.Transaction
+                .Include(t => t.User)
+                .Include(t => t.TransactionItemsList)
+                .ThenInclude(ti => ti.MenuItem)
+                .ThenInclude(mi => mi.Type)
+                .Where(t => t.UserId == userId)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            }
+
+
+
+            // Pobierz transakcję na podstawie ID
+            //var transaction = await _context.Transaction
+            //    .Include(t => t.TransactionItemsList)
+            //    .ThenInclude(ti => ti.MenuItem)
+            //    .ThenInclude(mi => mi.Type) // załadowanie typu produktu
+            //    .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (transaction == null || (transaction.UserId != userId && !User.IsInRole("Administrator")))
             {
                 return NotFound();
             }
 
-            // Przekazujemy transakcję do widoku
             return View(transaction);
         }
 
@@ -307,14 +405,12 @@ namespace Kafejka.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var transaction = await _context.Transaction
                 .Include(t => t.TransactionItemsList)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
-            if (transaction == null)
-            {
-                return NotFound();
-            }
+            if (transaction == null || (transaction.UserId != userId && !User.IsInRole("Administrator"))) return NotFound();
 
             // Usuń powiązane pozycje z TransactionItemsList
             _context.TransactionItemsList.RemoveRange(transaction.TransactionItemsList);
@@ -325,6 +421,26 @@ namespace Kafejka.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+
+        //Approve
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var transaction = await _context.Transaction.FindAsync(id);
+            if (transaction == null)
+            {
+                return NotFound();
+            }
+
+            transaction.Approved = true;
+            _context.Update(transaction);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
 
         private bool TransactionExists(int id)
         {

@@ -38,5 +38,10 @@ namespace Kafejka.Models
 
             return items?.FirstOrDefault()?.MenuItem;
         }
+
+
+        public string? UserId { get; set; }
+        public IdentityUser? User { get; set; }
+
     }
 }

@@ -29,16 +29,20 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="MenuItems" asp-action="Index">Menu</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="ItemTypes" asp-action="Index">ItemTypes</a>
-                        </li>
+                        @if(User.IsInRole("Administrator"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="ItemTypes" asp-action="Index">Rodzaje pozycji</a>
+                            </li>
+                        }
                     </ul>
                     <li class="nav-item dropdown">
                         <a class="nav-link text-dark dropdown-toggle" id="loyaltyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"
                            asp-area="" asp-controller="Home" asp-action="LoyaltyInfo">Program lojalnościowy</a>
                         <ul class="dropdown-menu" aria-labelledby="loyaltyDropdown">
                             <li><a class="dropdown-item" asp-area="" asp-controller="Transactions" asp-action="Index">Wizyty</a></li>
-                            <li> <a class="dropdown-item" asp-area="" asp-controller="ItemTypes" asp-action="Index">ItemTypes</a></li>
+                            <li><a class="dropdown-item" asp-area="" asp-controller="Loyalties" asp-action="Index">Statystyki</a></li>
+                            
                         </ul>
                     </li>
                     <partial name="_LoginPartial" />

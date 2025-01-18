@@ -14,5 +14,6 @@ namespace Kafejka.Data
         public DbSet<Kafejka.Models.MenuItem> MenuItem { get; set; } = default!;
         public DbSet<Kafejka.Models.Transaction> Transaction { get; set; } = default!;
         public DbSet<Kafejka.Models.TransactionItemsList> TransactionItemsList { get; set; } = default!;
+        public DbSet<Kafejka.Models.Loyalty> Loyalty { get; set; } = default!;
     }
 }
