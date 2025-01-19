@@ -1,6 +1,7 @@
 # Kafejka
 Aby zaimportować baze danych należy przeniesć plik **KafejkaDataase.mdf** do folderu **Kafejka/bin/Debug/net8.0**, który utworzy się po pierwszym uruchomieniu strony internetowej.
-
+Aby zaimportować baze danych nalezy przeniesć plik **"KafejkaDatabase.mdf"** do folderu **"Kafejka/bin/Debug/net8.0"**, 
+który utworzy się po pierwszym otworzeniu projektu w programie Visual Studio <ins>(bez kompilowania, wystarczy sklonować repozytorium z github)</ins>.
  
 Konto administratora:
 
