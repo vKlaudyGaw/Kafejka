@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Components.Forms;
 
 namespace Kafejka.Controllers
 {
-    //[Authorize]
     public class TransactionsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -209,22 +208,6 @@ namespace Kafejka.Controllers
 
             try
             {
-                //var userTransactionsCount = await _context.Transaction
-                //    .CountAsync(t => t.UserId == transaction.UserId);
-                //var existingLoyalty = await _context.Loyalty
-                //    .FirstOrDefaultAsync(l => l.UserId == transaction.UserId);
-                
-                //if (userTransactionsCount == 0 && existingLoyalty == null)
-                //{
-                //    var loyalty = new Loyalty
-                //    {
-                //        UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
-                //        TotalPoints = 0,
-                //        NumberOfStampsUses = 0
-                //    };
-                //    _context.Loyalty.Add(loyalty);
-                //    await _context.SaveChangesAsync();
-                //}
 
                 //Dodawanie id oraz approved
                 if (User.IsInRole("Administrator") && !string.IsNullOrEmpty(selectedUserId))
