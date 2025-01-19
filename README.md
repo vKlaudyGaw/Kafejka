@@ -5,7 +5,7 @@ Konto administratora:
 -email: admin@admin.pl
 -hasło: Admin123*
 
-Konta przykładowych użytkowników: 
+Konta przykładowych użytkowników:
 -email: adam@test.pl
 -hasło: Test123*
 Konto ma 1 zaakceptowaną i 3 oczekujące wizyty, 59 aktualnych punktów, 0 użytych pieczątek i 0 zebranych pieczątek.
