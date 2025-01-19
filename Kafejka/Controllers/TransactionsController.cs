@@ -64,7 +64,13 @@ namespace Kafejka.Controllers
                     .Where(t => t.UserId == userId)
                     .ToListAsync();
             }
-           
+
+            var hasNonAdminUsers = _context.Users.Any(u => !_context.UserRoles
+                .Where(ur => ur.UserId == u.Id)
+                .Any(ur => ur.RoleId == _context.Roles.First(r => r.Name == "Administrator").Id));
+
+            ViewBag.HasNonAdminUsers = hasNonAdminUsers;
+
             return View(transactions);
         }
 

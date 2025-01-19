@@ -5,8 +5,19 @@
 }
 
 <h1>Twoje wizyty</h1>
-<br />
+@* <br />
 <a asp-action="Create" class="btn btn-primary">Dodaj kod</a>
+<br />
+<br /> *@
+<br />
+@if (ViewBag.HasNonAdminUsers)
+{
+    <a asp-action="Create" class="btn btn-primary">Dodaj kod</a>
+}
+else
+{
+    <p class="text-danger">Brak zarejestrowanych użytkowników</p>
+}
 <br />
 <br />
 <table class="table">
@@ -33,7 +44,7 @@
                     <td>@item.User.UserName</td>
                 }
                 <td>@item.Code</td>
-                <td>@item.Amount</td>
+                <td>@item.Amount zł</td>
                 <td>@item.PurchaseTime</td>
                 <td>
                     @foreach (var transactionItem in item.TransactionItemsList)
