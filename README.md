@@ -12,7 +12,7 @@ który utworzy się po pierwszym otworzeniu projektu w programie Visual Studio <
  - hasło: Admin123*
 
 
-**Konta przykładowych użytkowników:**
+**Konta przykładowych użytkowników zawartych w bazie danych:**
 
 
  - email: adam@test.pl
@@ -34,4 +34,4 @@ który utworzy się po pierwszym otworzeniu projektu w programie Visual Studio <
 
 
 
-**W Menu jest 18 pozycji oraz są 2 typy pozycji.**
+**W Menu jest 18 pozycji oraz są 3 rodzaje pozycji.**
