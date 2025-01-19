@@ -30,7 +30,6 @@ namespace Kafejka.Controllers
         //}
 
 
-
         public async Task<IActionResult> Index()
         {
             // Pobieramy UserId z kontekstu
@@ -73,40 +72,6 @@ namespace Kafejka.Controllers
 
             return View();
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         // GET: Loyalties/Details/5
         public async Task<IActionResult> Details(int? id)

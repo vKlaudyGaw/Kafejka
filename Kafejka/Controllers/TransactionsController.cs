@@ -108,10 +108,27 @@ namespace Kafejka.Controllers
         }
 
 
-
         // GET: Transactions/Create
         public async Task<IActionResult> Create()
         {
+            if (User.IsInRole("Administrator"))
+            {
+                var adminRoleId = await _context.Roles
+                    .Where(r => r.Name == "Administrator")
+                    .Select(r => r.Id)
+                    .FirstOrDefaultAsync();
+
+                var nonAdminUsers = await _context.Users
+                    .Where(u => !_context.UserRoles
+                        .Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId))
+                    .ToListAsync();
+
+                ViewData["Users"] = nonAdminUsers;
+            }
+            else
+            {
+                ViewData["Users"] = null; 
+            }
             ViewData["MenuItems"] = await _context.MenuItem.ToListAsync();
             return View();
         }
@@ -122,15 +139,35 @@ namespace Kafejka.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Transaction transaction, int[] quantities)
+        public async Task<IActionResult> Create(Transaction transaction, int[] quantities, string? selectedUserId)
         {
             // Sprawdzenie unikalności kodu
             var existingTransaction = await _context.Transaction
                 .FirstOrDefaultAsync(t => t.Code == transaction.Code);
 
+            if (User.IsInRole("Administrator"))
+            {
+                var adminRoleId = await _context.Roles
+                    .Where(r => r.Name == "Administrator")
+                    .Select(r => r.Id)
+                    .FirstOrDefaultAsync();
+
+                var nonAdminUsers = await _context.Users
+                    .Where(u => !_context.UserRoles
+                        .Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId))
+                    .ToListAsync();
+
+                ViewData["Users"] = nonAdminUsers;
+            }
+            else
+            {
+                ViewData["Users"] = null;
+            }
+
             if (existingTransaction != null)
             {
                 ModelState.AddModelError("Code", "Kod transakcji musi być unikalny. Taki kod już istnieje. Podaj inny kod z paragonu.");
+                
                 ViewData["MenuItems"] = _context.MenuItem.ToList();
                 return View(transaction);
             }
@@ -164,12 +201,18 @@ namespace Kafejka.Controllers
 
             try
             {
-                //Dodawanie false do approved przy tworzeniu przez użytkownika
-                transaction.Approved = false;
-                //Dodanie userId do transakcji
-                transaction.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                //Dodawanie id oraz approved
+                if (User.IsInRole("Administrator") && !string.IsNullOrEmpty(selectedUserId))
+                {
+                    transaction.UserId = selectedUserId;
+                    transaction.Approved = true;
+                }
+                else
+                {
+                    transaction.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    transaction.Approved = false;
+                }
 
-                // Dodanie transakcji
                 _context.Add(transaction);
                 await _context.SaveChangesAsync();
 
@@ -441,6 +484,23 @@ namespace Kafejka.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        //DissApprove
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DissApprove(int id)
+        {
+            var transaction = await _context.Transaction.FindAsync(id);
+            if (transaction == null)
+            {
+                return NotFound();
+            }
+
+            transaction.Approved = false;
+            _context.Update(transaction);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
 
         private bool TransactionExists(int id)
         {

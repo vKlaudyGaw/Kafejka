@@ -45,7 +45,14 @@
                 </td>
                 @if(item.Approved)
                 {
-                    <td>Zaakceptowane</td>
+                    <td>Zaakceptowane
+                        @if (User.IsInRole("Administrator"))
+                        {
+                            <form asp-action="DissApprove" asp-route-id="@item.Id" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-success">Dezaktywuj</button>
+                            </form>
+                        }
+                    </td>
                 }
                 else
                 {
