@@ -6,8 +6,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Kafejka</title>
-    <link rel="stylesheet" href="~/css/Theme.css" />
+    @* <link rel="stylesheet" href="~/css/Theme.css" /> *@
     @* <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> *@
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Kafejka.styles.css" asp-append-version="true" />
 </head>
@@ -46,7 +47,7 @@
                                 <li><a class="dropdown-item" asp-area="" asp-controller="Transactions" asp-action="Index">Wizyty</a></li>
                                 @if (!User.IsInRole("Administrator"))
                                 {
-                                    <li><a class="dropdown-item" asp-area="" asp-controller="Loyalties" asp-action="Index">Statystyki</a></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Loyalties" asp-action="Index">Pieczątki</a></li>
                                 }
                             </ul>
                         }
