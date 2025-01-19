@@ -56,7 +56,7 @@ namespace Kafejka.Controllers
         [Authorize(Roles = "Administrator")]
         public IActionResult Create()
         {
-            ViewData["ItemTypeId"] = new SelectList(_context.ItemType, "Id", "Id");
+            ViewData["ItemTypeId"] = new SelectList(_context.ItemType, "Id", "Name");
             return View();
         }
 
@@ -74,7 +74,7 @@ namespace Kafejka.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ItemTypeId"] = new SelectList(_context.ItemType, "Id", "Id", menuItem.ItemTypeId);
+            ViewData["ItemTypeId"] = new SelectList(_context.ItemType, "Id", "Name", menuItem.ItemTypeId);
             return View(menuItem);
         }
 
@@ -92,7 +92,7 @@ namespace Kafejka.Controllers
             {
                 return NotFound();
             }
-            ViewData["ItemTypeId"] = new SelectList(_context.ItemType, "Id", "Id", menuItem.ItemTypeId);
+            ViewData["ItemTypeId"] = new SelectList(_context.ItemType, "Id", "Name", menuItem.ItemTypeId);
             return View(menuItem);
         }
 
@@ -129,7 +129,7 @@ namespace Kafejka.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ItemTypeId"] = new SelectList(_context.ItemType, "Id", "Id", menuItem.ItemTypeId);
+            ViewData["ItemTypeId"] = new SelectList(_context.ItemType, "Id", "Name", menuItem.ItemTypeId);
             return View(menuItem);
         }
 

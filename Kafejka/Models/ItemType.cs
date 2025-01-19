@@ -4,6 +4,7 @@ namespace Kafejka.Models
 {
     public class ItemType
     {
+        [Display(Name="Rodzaj")]
         public int Id { get; set; }
 
 

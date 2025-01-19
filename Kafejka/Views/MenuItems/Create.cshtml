@@ -1,12 +1,12 @@
 ﻿@model Kafejka.Models.MenuItem
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Dodaj pozycję";
 }
 
-<h1>Create</h1>
+<h1>Menu kawiarni</h1>
 
-<h4>MenuItem</h4>
+<h4>Dodaj pozycję do menu</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -32,14 +32,14 @@
                 <select asp-for="ItemTypeId" class ="form-control" asp-items="ViewBag.ItemTypeId"></select>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Zapisz" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Powrót</a>
 </div>
 
 @section Scripts {

@@ -9,7 +9,7 @@ namespace Kafejka.Models
 
 
         [Required(ErrorMessage = "Podaj nazwe produktu")]
-        [Display(Name = " Nazwa")]
+        [Display(Name = "NAZWA")]
         [StringLength(150, MinimumLength = 1, ErrorMessage = "Nazwa produktu musi mieć od 1 do 150 znaków")]
         public string Name { get; set; }
 
@@ -25,10 +25,11 @@ namespace Kafejka.Models
         [Range(0, 100000, ErrorMessage = "Cena nie może być ujemna lub zbyt duża.")]
         public int Price { get; set; }  //ceny pełnymi złotówkami np.12zł dlatego int
 
-
+        [Display(Name = "RODZAJ")]
         [Required(ErrorMessage = "Wybierz typ produktu")]
         [ForeignKey("ItemType")]
         public  int ItemTypeId { get; set; }
+        [Display(Name="RODZAJ")]
         public virtual ItemType? Type { get; set; }
     }
 }

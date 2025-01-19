@@ -1,13 +1,14 @@
 ﻿@model Kafejka.Models.MenuItem
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegóły pozycji";
 }
 
-<h1>Details</h1>
+<h1>Menu kawiarni</h1>
+
 
 <div>
-    <h4>MenuItem</h4>
+    <h4>Szczegóły pozycji w menu</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -26,17 +27,17 @@
             @Html.DisplayNameFor(model => model.Price)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Price)
+            @Html.DisplayFor(model => model.Price) zł
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Type)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Type.Id)
+            @Html.DisplayFor(model => model.Type.Name)
         </dd>
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Edytuj</a> |
+    <a asp-action="Index">Powrót</a>
 </div>
