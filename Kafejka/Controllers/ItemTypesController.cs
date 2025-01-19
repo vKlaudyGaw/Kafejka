@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Kafejka.Data;
 using Kafejka.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Kafejka.Controllers
 {
+    [Authorize(Roles = "Administrator")]
     public class ItemTypesController : Controller
     {
         private readonly ApplicationDbContext _context;
