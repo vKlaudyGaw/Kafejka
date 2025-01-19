@@ -12,7 +12,7 @@ który utworzy się po pierwszym otworzeniu projektu w programie Visual Studio <
  - hasło: Admin123*
 
 
-**Konta przykładowych użytkowników:**
+**Konta przykładowych użytkowników zawartych w bazie danych:**
 
 
  - email: adam@test.pl
