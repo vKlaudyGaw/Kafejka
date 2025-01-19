@@ -34,4 +34,4 @@ który utworzy się po pierwszym otworzeniu projektu w programie Visual Studio <
 
 
 
-**W Menu jest 18 pozycji oraz są 2 typy pozycji.**
+**W Menu jest 18 pozycji oraz są 3 rodzaje pozycji.**
