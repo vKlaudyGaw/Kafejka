@@ -1,10 +1,8 @@
 ﻿@model IEnumerable<Kafejka.Models.Loyalty>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Twoje konto lojalnościowe";
 }
-
-
 @{
     var totalPoints = ViewBag.TotalPoints;
     var currentStamps = ViewBag.CurrentStamps;
@@ -12,66 +10,34 @@
     var currentReward = ViewBag.CurrentReward;
 }
 
-<h2>Twoje konto lojalnościowe</h2>
-
-<p>Całkowita liczba punktów: @totalPoints</p>
-<p>Liczba pieczątek: @currentStamps</p>
-<p>Dostępne darmowe produkty: @freeProductsAvailable</p>
-
-@if (currentReward != null)
-{
-    <p>Możesz odebrać nagrodę: <strong>@currentReward.Name</strong></p>
-}
-else
-{
-    <p>Nie masz jeszcze dostępnych nagród.</p>
-}
+<div class="text-center">
+    <h1 class="=display-2">Twoje konto lojalnościowe</h1>
+    <br />
+    <p>Całkowita liczba punktów: @totalPoints</p>
+    <p>Dostępne darmowe produkty: @freeProductsAvailable</p>
 
 
+    <p>Zebrałeś @currentStamps pieczątek!</p>
+    <p>
+        @for (int i = 1; i <= currentStamps; i++)
+        {
+            <img src="~/images/pieczatka.png" alt="pieczatka" width="100" height="100">
+            if (i % 5 == 0)
+            {
+                <br />
+            }
 
+        }
+    </p>
+    <br />
+    @if (currentReward != null)
+    {
+        <p>Możesz odebrać darmową nagrodę</p>
+        <p><strong>@currentReward.Name.ToUpper()</strong></p>
+    }
+    else
+    {
+        <p>Nie masz jeszcze dostępnych nagród.</p>
+    }
 
-
-
-
-@* <h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.TotalPoints)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NumberOfStampsUses)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.TotalPoints)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NumberOfStampsUses)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.Id)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
- *@
+</div>
