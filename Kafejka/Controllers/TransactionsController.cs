@@ -141,9 +141,6 @@ namespace Kafejka.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Transaction transaction, int[] quantities, string? selectedUserId)
         {
-            // Sprawdzenie unikalności kodu
-            var existingTransaction = await _context.Transaction
-                .FirstOrDefaultAsync(t => t.Code == transaction.Code);
 
             if (User.IsInRole("Administrator"))
             {
@@ -163,6 +160,11 @@ namespace Kafejka.Controllers
             {
                 ViewData["Users"] = null;
             }
+
+
+            // Sprawdzenie unikalności kodu
+            var existingTransaction = await _context.Transaction
+                .FirstOrDefaultAsync(t => t.Code == transaction.Code);
 
             if (existingTransaction != null)
             {
@@ -201,20 +203,83 @@ namespace Kafejka.Controllers
 
             try
             {
+                //var userTransactionsCount = await _context.Transaction
+                //    .CountAsync(t => t.UserId == transaction.UserId);
+                //var existingLoyalty = await _context.Loyalty
+                //    .FirstOrDefaultAsync(l => l.UserId == transaction.UserId);
+                
+                //if (userTransactionsCount == 0 && existingLoyalty == null)
+                //{
+                //    var loyalty = new Loyalty
+                //    {
+                //        UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                //        TotalPoints = 0,
+                //        NumberOfStampsUses = 0
+                //    };
+                //    _context.Loyalty.Add(loyalty);
+                //    await _context.SaveChangesAsync();
+                //}
+
                 //Dodawanie id oraz approved
                 if (User.IsInRole("Administrator") && !string.IsNullOrEmpty(selectedUserId))
                 {
                     transaction.UserId = selectedUserId;
                     transaction.Approved = true;
+                    _context.Add(transaction);
+                    await _context.SaveChangesAsync();
+
+                    var userTransactionsCount = await _context.Transaction
+                        .CountAsync(t => t.UserId == transaction.UserId);
+
+                    var existingLoyalty = await _context.Loyalty
+                        .FirstOrDefaultAsync(l => l.UserId == transaction.UserId);
+                    
+                    if (userTransactionsCount == 1 && existingLoyalty == null)
+                    {
+                        var loyalty = new Loyalty
+                        {
+                            UserId = selectedUserId,
+                            TotalPoints = transaction.Amount,
+                            NumberOfStampsUses = 0
+                        };
+                        _context.Loyalty.Add(loyalty);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        existingLoyalty.TotalPoints += transaction.Amount;
+
+
+                        _context.Update(existingLoyalty);
+                        await _context.SaveChangesAsync();
+                    }
+
                 }
                 else
                 {
                     transaction.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                     transaction.Approved = false;
-                }
+                    _context.Add(transaction);
+                    await _context.SaveChangesAsync();
 
-                _context.Add(transaction);
-                await _context.SaveChangesAsync();
+                    var userTransactionsCount = await _context.Transaction
+                        .CountAsync(t => t.UserId == transaction.UserId);
+
+                    var existingLoyalty = await _context.Loyalty
+                        .FirstOrDefaultAsync(l => l.UserId == transaction.UserId);
+
+                    if (userTransactionsCount == 1 && existingLoyalty == null)
+                    {
+                        var loyalty = new Loyalty
+                        {
+                            UserId = transaction.UserId,
+                            TotalPoints = 0,
+                            NumberOfStampsUses = 0
+                        };
+                        _context.Loyalty.Add(loyalty);
+                        await _context.SaveChangesAsync();
+                    }
+                }
 
                 // Tworzenie listy TransactionItemsList
                 var menuItems = _context.MenuItem.ToList();
@@ -354,6 +419,17 @@ namespace Kafejka.Controllers
 
             try
             {
+                //
+
+                //var loyalty = await _context.Loyalty
+                //.Include(t => t.User)
+                //.Where(t => t.UserId == transaction.UserId)
+                //.FirstOrDefaultAsync();
+
+                //loyalty.TotalPoints += transaction.Amount;
+
+
+
                 // Aktualizacja transakcji
                 existingTransaction.Code = transaction.Code;
                 existingTransaction.Amount = transaction.Amount;
@@ -472,13 +548,22 @@ namespace Kafejka.Controllers
         public async Task<IActionResult> Approve(int id)
         {
             var transaction = await _context.Transaction.FindAsync(id);
+            
             if (transaction == null)
             {
                 return NotFound();
             }
+            var loyalty = await _context.Loyalty
+                .Include(t=>t.User)
+                .Where(t => t.UserId == transaction.UserId)
+                .FirstOrDefaultAsync();
 
+            loyalty.TotalPoints += transaction.Amount;
             transaction.Approved = true;
+            //loyalty.Transactions.Add(transaction);
+
             _context.Update(transaction);
+            _context.Update(loyalty);
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
@@ -495,7 +580,16 @@ namespace Kafejka.Controllers
                 return NotFound();
             }
 
+            var loyalty = await _context.Loyalty
+                .Include(t => t.User)
+                .Where(t => t.UserId == transaction.UserId)
+                .FirstOrDefaultAsync();
+
+            loyalty.TotalPoints -= transaction.Amount;
             transaction.Approved = false;
+            //loyalty.Transactions.Remove(transaction);
+
+            _context.Update(loyalty);
             _context.Update(transaction);
             await _context.SaveChangesAsync();
 

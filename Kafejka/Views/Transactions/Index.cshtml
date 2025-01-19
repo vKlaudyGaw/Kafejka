@@ -48,6 +48,7 @@
                     <td>Zaakceptowane
                         @if (User.IsInRole("Administrator"))
                         {
+                            <br />
                             <form asp-action="DissApprove" asp-route-id="@item.Id" method="post" style="display:inline;">
                                 <button type="submit" class="btn btn-success">Dezaktywuj</button>
                             </form>
@@ -59,6 +60,7 @@
                     <td>Oczekujące
                         @if (User.IsInRole("Administrator"))
                         {
+                            <br />
                         <form asp-action="Approve" asp-route-id="@item.Id" method="post" style="display:inline;">
                             <button type="submit" class="btn btn-success">Akceptuj</button>
                         </form>

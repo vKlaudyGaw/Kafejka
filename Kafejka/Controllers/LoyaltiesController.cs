@@ -22,14 +22,6 @@ namespace Kafejka.Controllers
             _context = context;
         }
 
-        // GET: Loyalties
-        //public async Task<IActionResult> Index()
-        //{
-        //    var applicationDbContext = _context.Loyalty.Include(l => l.User);
-        //    return View(await applicationDbContext.ToListAsync());
-        //}
-
-
         public async Task<IActionResult> Index()
         {
             // Pobieramy UserId z kontekstu
@@ -42,164 +34,79 @@ namespace Kafejka.Controllers
                 .ThenInclude(til => til.MenuItem)  // Dołączamy pozycje z transakcji
                 .ToListAsync();
 
-            // Inicjalizujemy zmienne
-            int totalPoints = 0;
-            int stampsUsed = 0;
-
-            // Liczymy punkty
-            foreach (var transaction in transactions)
-            {
-                totalPoints += transaction.Amount;  // Każda transakcja dodaje punkty równowartości jej kwoty
-            }
-
-            // Obliczamy liczbę pieczątek
-            int currentStamps = (totalPoints / 100) - stampsUsed;
-
-            // Liczymy dostępne nagrody (na podstawie najczęściej kupowanych produktów)
-            var mostBoughtProduct = transactions
-                .SelectMany(t => t.TransactionItemsList)
-                .GroupBy(til => til.MenuItemId)
-                .OrderByDescending(g => g.Count())
-                .FirstOrDefault();
-
-            MenuItem currentReward = mostBoughtProduct?.FirstOrDefault()?.MenuItem;
-
-            // Przekazujemy dane do widoku
-            ViewBag.TotalPoints = totalPoints;
-            ViewBag.CurrentStamps = currentStamps;
-            ViewBag.FreeProductsAvailable = currentStamps / 5;  // 5 pieczątek = 1 darmowy produkt
-            ViewBag.CurrentReward = currentReward;
-
-            return View();
-        }
-
-        // GET: Loyalties/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var loyalty = await _context.Loyalty
-                .Include(l => l.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(l => l.UserId == userId);
+
             if (loyalty == null)
             {
-                return NotFound();
-            }
+                ViewBag.TotalPoints = 0;
+                ViewBag.CurrentStamps = 0;
+                ViewBag.FreeProductsAvailable = 0;  
+                ViewBag.CurrentReward = null;
+                ViewBag.redemstamps = 0;
 
-            return View(loyalty);
+                return View();
+            }
+            else
+            {
+                int totalPoints = loyalty.TotalPoints;
+                int stampsUsed = 5 * loyalty.NumberOfStampsUses;
+
+
+                int currentStamps = (totalPoints / 100);
+
+                // Liczymy dostępne nagrody (na podstawie najczęściej kupowanych produktów)
+                var mostBoughtProduct = transactions
+                    .SelectMany(t => t.TransactionItemsList)
+                    .GroupBy(til => til.MenuItemId)
+                    .OrderByDescending(g => g.Count())
+                    .FirstOrDefault();
+
+                MenuItem currentReward = mostBoughtProduct?.FirstOrDefault()?.MenuItem;
+
+                // Przekazujemy dane do widoku
+                ViewBag.TotalPoints = totalPoints;
+                ViewBag.CurrentStamps = currentStamps;
+                ViewBag.FreeProductsAvailable = currentStamps / 5;
+                ViewBag.CurrentReward = currentReward;
+                ViewBag.redemstamps = stampsUsed;
+
+                return View();
+            }
         }
 
-        // GET: Loyalties/Create
-        public IActionResult Create()
+        [HttpPost]
+        public IActionResult ConfirmRedemption()
         {
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
             return View();
         }
 
-        // POST: Loyalties/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,TotalPoints,NumberOfStampsUses,UserId")] Loyalty loyalty)
+        public async Task<IActionResult> RedeemStamps()
         {
-            if (ModelState.IsValid)
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var loyalty = await _context.Loyalty.FirstOrDefaultAsync(l => l.UserId == userId);
+
+            if (loyalty != null && loyalty.FreeProductsAvailable > 0)
             {
-                _context.Add(loyalty);
+                loyalty.NumberOfStampsUses++;
+                loyalty.TotalPoints -= 500;
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                var code = new Random().Next(10000, 99999).ToString();
+                ViewBag.Code = code;
+                ViewBag.Timer = 15 * 60; // 15 minut w sekundach
+
+                return View("RedemptionCode");
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", loyalty.UserId);
-            return View(loyalty);
+
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: Loyalties/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var loyalty = await _context.Loyalty.FindAsync(id);
-            if (loyalty == null)
-            {
-                return NotFound();
-            }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", loyalty.UserId);
-            return View(loyalty);
-        }
-
-        // POST: Loyalties/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,TotalPoints,NumberOfStampsUses,UserId")] Loyalty loyalty)
+        public IActionResult ConfirmUse()
         {
-            if (id != loyalty.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(loyalty);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!LoyaltyExists(loyalty.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", loyalty.UserId);
-            return View(loyalty);
-        }
-
-        // GET: Loyalties/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var loyalty = await _context.Loyalty
-                .Include(l => l.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (loyalty == null)
-            {
-                return NotFound();
-            }
-
-            return View(loyalty);
-        }
-
-        // POST: Loyalties/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var loyalty = await _context.Loyalty.FindAsync(id);
-            if (loyalty != null)
-            {
-                _context.Loyalty.Remove(loyalty);
-            }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

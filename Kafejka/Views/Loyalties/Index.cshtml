@@ -8,16 +8,41 @@
     var currentStamps = ViewBag.CurrentStamps;
     var freeProductsAvailable = ViewBag.FreeProductsAvailable;
     var currentReward = ViewBag.CurrentReward;
+    var redemstamps = ViewBag.redemstamps;
 }
 
 <div class="text-center">
     <h1 class="=display-2">Twoje konto lojalnościowe</h1>
     <br />
-    <p>Całkowita liczba punktów: @totalPoints</p>
-    <p>Dostępne darmowe produkty: @freeProductsAvailable</p>
-
-
-    <p>Zebrałeś @currentStamps pieczątek!</p>
+    @if (totalPoints < 0)
+    {
+        <p>Saldo twojego konta jest ujemne. Skontaktuj się z właścicielem kawiarni.</p>
+    }
+    else
+    {
+        <p>Masz aktualnie @totalPoints punktów!</p>
+    }
+    
+    @if(freeProductsAvailable>0)
+    {
+        <p>Możesz odebrać @freeProductsAvailable darmowych produktów.</p>
+    }
+    @if (redemstamps > 0)
+    {
+        <p>Użyłeś @redemstamps pieczątek.</p>
+    }
+    else
+    {
+        <p>Nie użyłeś jeszcze żadnych pieczątek.</p>
+    }
+    @if (currentStamps > 0)
+    {
+        <p>Zebrałeś @currentStamps pieczątek!</p>
+    }
+    else
+    {
+        <p>Nie masz żadnych pieczątek.</p>
+    }
     <p>
         @for (int i = 1; i <= currentStamps; i++)
         {
@@ -30,14 +55,27 @@
         }
     </p>
     <br />
-    @if (currentReward != null)
+    @if (currentReward != null && currentStamps >=5 )
     {
         <p>Możesz odebrać darmową nagrodę</p>
         <p><strong>@currentReward.Name.ToUpper()</strong></p>
     }
+    else if (currentReward != null)
+    {
+        <p>Twoja darmowa nagroda po uzbieraniu 5 pieczątek to</p>
+        <p><strong>@currentReward.Name.ToUpper()</strong></p>
+    }
     else
     {
-        <p>Nie masz jeszcze dostępnych nagród.</p>
+        <p>Nie masz jeszcze dostępnych nagród</p>
+        <p>Wprowadź kod z paragonu</p>
+    }
+    <br />
+    @if (freeProductsAvailable > 0)
+    {
+        <form asp-action="ConfirmRedemption" asp-controller="Loyalties">
+            <button type="submit" class="btn btn-primary">Wykorzystaj pieczątki</button>
+        </form>
     }
 
 </div>

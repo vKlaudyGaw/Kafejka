@@ -1,0 +1,22 @@
+﻿@model Kafejka.Models.Loyalty
+
+@{
+    ViewData["Title"] = "Potwierdzenie wykorzystania pieczątek";
+}
+
+<div class="text-center">
+    <h2>Czy jesteś pewien, że chcesz teraz wykorzystać swoją promocję?</h2>
+    <p class="text-danger">
+        Naciśnij <strong>TAK</strong> tylko wtedy, gdy jesteś gotowy wykorzystać promocję oraz znajdujesz się przy kasie w kawiarni, aby pokazać kod uprawniający do odbioru nagrody pracownikowi.
+    </p>
+    <p>Wykorzystanie pieczątek jest nieodwracalne.</p>
+    <br />
+    <form asp-action="RedeemStamps" asp-controller="Loyalties">
+        <button type="submit" class="btn btn-success">TAK, wykorzystaj teraz</button>
+    </form>
+    <a asp-action="Index" asp-controller="Loyalties" class="btn btn-secondary">NIE, wykorzystaj później</a>
+</div>
+
+@* @section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} *@

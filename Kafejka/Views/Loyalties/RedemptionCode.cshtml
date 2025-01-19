@@ -1,0 +1,42 @@
+﻿@model Kafejka.Models.Loyalty
+
+@{
+    ViewData["Title"] = "Odbieranie nagrody";
+    var code = ViewBag.Code;
+    var remainingTime = ViewBag.Timer; // W sekundach
+}
+
+<div class="text-center">
+    <h2>Twój kod odbioru nagrody</h2>
+    <h1 class="text-primary">@code</h1>
+    <p class="text-danger">
+        Nie opuszczaj tej strony, dopóki pracownik nie potwierdzi odebrania nagrody. W przeciwnym wypadku stracisz 5 pieczątek.
+    </p>
+    <div id="timer" class="text-danger"></div> 
+    <form asp-action="ConfirmUse" asp-controller="Loyalties">
+        <button type="submit" class="btn btn-success">Wykorzystaj (naciska pracownik)</button>
+    </form>
+</div>
+
+<script>
+    let timer = @remainingTime;
+    const timerElement = document.getElementById("timer");
+
+    const updateTimer = () => {
+        if (timer <= 0) {
+            window.location.href = "@Url.Action("Index", "Loyalties")";
+            return;
+        }
+        const minutes = Math.floor(timer / 60);
+        const seconds = timer % 60;
+        timerElement.textContent = `Pozostały czas na potwierdzenie kodu: ${minutes}m ${seconds}s`;
+        timer--;
+        setTimeout(updateTimer, 1000);
+    };
+
+    updateTimer();
+</script>
+@* @section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+ *@
