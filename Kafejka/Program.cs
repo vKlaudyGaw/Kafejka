@@ -20,24 +20,38 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var serviceProvider = scope.ServiceProvider;
+    var dbContext = serviceProvider.GetRequiredService<ApplicationDbContext>(); 
+    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
-    // Tworzenie roli Administrator
-    var adminRole = "Administrator";
-    if (!await roleManager.RoleExistsAsync(adminRole))
+    // Sprawdzenie, czy baza danych istnieje
+    if (await dbContext.Database.CanConnectAsync())
     {
-        await roleManager.CreateAsync(new IdentityRole(adminRole));
+        // Tworzenie roli Administrator
+        var adminRole = "Administrator";
+        if (!await roleManager.RoleExistsAsync(adminRole))
+        {
+            await roleManager.CreateAsync(new IdentityRole(adminRole));
+        }
+        //var adminEmail = "admin@admin.pl";
+        //var adminPassword = "Admin123*";
+        //if (await userManager.FindByEmailAsync(adminEmail) == null)
+        //{
+        //    var adminUser = new IdentityUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
+        //    await userManager.CreateAsync(adminUser, adminPassword);
+        //    await userManager.AddToRoleAsync(adminUser, adminRole);
+        //}
     }
-
 }
-    // Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
 }
 else
 {
+    
     app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
